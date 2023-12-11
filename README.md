@@ -28,6 +28,7 @@ Well, I loved how Github Copilot finished code and sentences for me, but it only
 - [ ] Add a way to change the hotkey without editing the file
 - [ ] Add a way to send the text to complete without having to copy it to the clipboard
 - [ ] Add a command line argument to specify the API call details like the temperature, max tokens, etc.
+- [ ] Remove the space that the model adds to the beginning of each response
 
 ##### Disclaimer ⚠️
 
