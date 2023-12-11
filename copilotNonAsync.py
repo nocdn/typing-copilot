@@ -1,8 +1,8 @@
 from pynput import keyboard
 import requests
-import json
 import pyperclip
 import keyboard as kb
+import os
 
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 
