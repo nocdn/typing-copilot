@@ -39,5 +39,5 @@ def run_script_with_input(input_text):
 
 if __name__ == "__main__":
     # Get input from command line arguments
-    input_text = ' '.join(sys.argv[1:]) 
+    input_text = ' '.join(sys.argv[1:])
     run_script_with_input(input_text)
