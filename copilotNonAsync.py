@@ -3,10 +3,15 @@ import requests
 import pyperclip
 import keyboard as kb
 import os
+import argparse
 
+
+parser = argparse.ArgumentParser(description='A text completer tool similar to Github Copilot for for any text.')
+parser.add_argument('--tokens', type=int, default=32, help='The maximum number of tokens to generate.')
+args = parser.parse_args()
 OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
 
-def fetch_completion(prompt):
+def fetch_completion(prompt, max_tokens):
     url = "https://api.openai.com/v1/completions"
     headers = {
         "Content-Type": "application/json",
@@ -15,7 +20,7 @@ def fetch_completion(prompt):
     data = {
         "model": "gpt-3.5-turbo-instruct",
         "prompt": prompt,
-        "max_tokens": 32,
+        "max_tokens": max_tokens,
         "temperature": 0
         # Note: 'stream': True is removed as we are using synchronous requests
     }
@@ -30,7 +35,7 @@ def fetch_completion(prompt):
 
 def on_activate():
     prompt_text = pyperclip.paste()
-    fetch_completion(prompt_text)
+    fetch_completion(prompt_text, args.tokens)
 
 def main():
     with keyboard.GlobalHotKeys({
