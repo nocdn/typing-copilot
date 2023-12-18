@@ -2,7 +2,7 @@
 
 ### What is this project about?
 
-Well, I loved how Github Copilot finished code and sentences for me, but it only works in IDEs. I wanted something that would work wherever I was typing, so I made this. It's a simple Python script that uses the OpenAI API (specifically gpt-3.5-turbo-instruct) to complete the text based on the context you provide in the prompt. It's not perfect, but it's pretty good. :)
+Well, I loved how Github Copilot finished code and sentences for me, but it only works in IDEs. I wanted something that would work wherever I was typing, so I made this. It's a simple Python script that uses the OpenAI API (specifically gpt-3.5-turbo-instruct) to complete the text based on the context you provide in the prompt. It's not perfect, but it's pretty good :)
 
 ### How do I use it? 🤔
 
@@ -32,4 +32,4 @@ Well, I loved how Github Copilot finished code and sentences for me, but it only
 
 ##### Disclaimer ⚠️
 
-I am not responsible for any misuse of this software. Please don't use it for anything bad. I made it for fun, not for evil. :)
+I am not responsible for any misuse of this software. Please don't use it for anything bad. I made it for fun, not for evil :)
