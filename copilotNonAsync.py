@@ -34,7 +34,7 @@ def fetch_completion(prompt, max_tokens):
         kb.write(text_chunk, 0.025)
 
 def on_activate():
-    prompt_text = pyperclip.paste()
+    prompt_text = getPastText()
     fetch_completion(prompt_text, args.tokens)
 
 def main():
@@ -42,5 +42,19 @@ def main():
         '<ctrl>+<alt>+f': on_activate}) as h:
         h.join()
 
+def getPastText():
+    # Press command and shift and the up arrow 5 times to select the previous 5 lines
+    # Press command c to copy
+    # Get the clipboard contents to use
+    kb.press_and_release('command+shift+up')
+    # copy the selected text
+    keys = keyboard.Controller()
+    keys.press('<ctrl>+c')
+
+    # Get the clipboard contents
+    past_text = pyperclip.paste()
+    return past_text
+
 if __name__ == "__main__":
     main()
+    
