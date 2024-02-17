@@ -42,24 +42,34 @@ if args.model:
         try:
             OPENAI_API_KEY = os.environ['OPENAI_API_KEY']
         except KeyError:
-            print("Please set the OPENAI_API_KEY environment variable")
-            sys.exit()
+            OPENAI_API_KEY = input("Please enter your OpenAI API key, will be saved as env variable: ")
+            if not OPENAI_API_KEY:
+                print("Please set the OPENAI_API_KEY environment variable manually")
+                sys.exit()
+            os.environ['OPENAI_API_KEY'] = OPENAI_API_KEY
+
     elif args.model == "openrouter":
         modelChoice = input("Please paste in the model string from openrouter.ai: ")
         schema = "openrouter"
         try:
             OPENROUTER_API_KEY = os.environ['OPENROUTER_API_KEY']
         except KeyError:
-            print("Please set the OPENROUTER_API_KEY environment variable")
-            sys.exit()
+            OPENROUTER_API_KEY = input("Please enter your OpenRouter API key, will be saved as env variable: ")
+            if not OPENROUTER_API_KEY:
+                print("Please set the OPENROUTER_API_KEY environment variable manually")
+                sys.exit()
+            os.environ['OPENROUTER_API_KEY'] = OPENROUTER_API_KEY
     elif args.model == "fireworks":
         modelChoice = input("Please paste in the model string from fireworks.ai: ")
         schema = "fireworks"
         try:
             FIREWORKS_API_KEY = os.environ['FIREWORKS_API_KEY']
         except KeyError:
-            print("Please set the FIREWORKS_API_KEY environment variable")
-            sys.exit()
+            FIREWORKS_API_KEY = input("Please enter your Fireworks API key, will be saved as env variable: ")
+            if not FIREWORKS_API_KEY:
+                print("Please set the FIREWORKS_API_KEY environment variable manually")
+                sys.exit()
+            os.environ['FIREWORKS_API_KEY'] = FIREWORKS_API_KEY
     else:
         print("Please choose a valid model schema from openAI, fireworks or openrouter")
         sys.exit()
