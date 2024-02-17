@@ -7,6 +7,9 @@ from pynput.keyboard import Controller, Listener, HotKey, Key
 import sys
 import argparse
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 argParser = argparse.ArgumentParser()
 
@@ -91,13 +94,13 @@ def press_callback():
         c.press(Key.down)
         c.release(Key.down)
 
-        time.sleep(0.07)
+        time.sleep(0.12)
         prompt_text = pyperclip.paste()
-        time.sleep(0.07)
+        time.sleep(0.12)
         if prompt_text and prompt_text[-1] != ' ':
             c.press(' ')
             c.release(' ')
-
+        time.sleep(0.12)
         if prompt_text and prompt_text[-1] != ' ':
             prompt_text += ' '
 

@@ -8,8 +8,9 @@ Well, I loved how Github Copilot finished code and sentences for me, but it only
 
 1. Clone the repo (I recommend doing this into a new virtual environment to prevent any issues with dependencies)
 2. Install the requirements with `pip install -r requirements.txt`
-3. Export the API keys for the platforms that you would like to use to corresponding environment variables, `OPENAI_API_KEY`, `OPENROUTER_API_KEY`, or `FIREWORKS_API_KEY`. Example syntax: `export OPENAI_API_KEY="<Your-API-Key>"` (see below for how to get an API key)
+3. Export the API keys for the platforms that you would like to use to corresponding environment variables, `OPENAI_API_KEY`, `OPENROUTER_API_KEY`, or `FIREWORKS_API_KEY`. Example syntax: `export OPENAI_API_KEY=<Your-API-Key>` (see below for how to get an API key)
    1. Alternatively, you can just paste your API key into the `copilotNonAsync.py` file if you don't want to use an environment variable
+   2. I do recommend editing the .env file to not have to enter the variables every launch
 4. Open the virtual environment and run the script with `python copilot.py`
 5. Press the keyboard shortcut (ctrl+optn+f by default) to get the completion
 6. The completion is typed from where the caret is, so make sure to place it where you want the completion to be inserted.
@@ -40,7 +41,8 @@ Well, I loved how Github Copilot finished code and sentences for me, but it only
 
 - [ ] Add a way to change the hotkey without editing the file
 - [ ] Handle ctrl+c or cmd+c gracefully, and exit script and environment automatically
-
+- [ ] Make the environment variable persist
+ 
 ##### Disclaimer ⚠️
 
 I am not responsible for any misuse of this software. Please don't use it for anything bad. I made it for fun, not for evil :)
