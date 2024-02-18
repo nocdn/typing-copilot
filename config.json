@@ -1,0 +1,17 @@
+{
+  "keyboard_shortcuts": {
+    "activate": "<ctrl>+<alt>+f"
+  },
+  "defaults": {
+    "tokens": 32,
+    "model": "gpt-3.5-turbo",
+    "schema": "openai",
+    "temperature": 0,
+    "context": 128,
+    "delay": 0.2
+  },
+  "network": {
+    "max_retries": 4,
+    "retry_delay": 2
+  }
+}
