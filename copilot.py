@@ -9,6 +9,12 @@ import argparse
 import os
 from dotenv import load_dotenv
 
+def clear():
+    if os.name == "nt":
+        _ = os.system("cls")
+    else:
+        _ = os.system("clear")
+
 load_dotenv()
 
 argParser = argparse.ArgumentParser()
@@ -29,6 +35,8 @@ modelChoice = "gpt-3.5-turbo"
 schema = "openai"
 
 args = argParser.parse_args()
+
+clear()
 
 if args.tokens:
     globalMaxTokens = int(args.tokens)
@@ -86,10 +94,16 @@ if args.model:
     print(f"Chosen {modelChoice} model")
 
 
+
 c = Controller()
+
+total_start_time = 0
 
 def press_callback():
     try:
+        global total_start_time
+        total_start_time = time.time()
+        
         c.press(Key.cmd)
         c.press('a')
         c.release('a')
@@ -110,9 +124,10 @@ def press_callback():
         time.sleep(globalDelay)
         if prompt_text and prompt_text[-1] != ' ':
             prompt_text += ' '
-
-        print(prompt_text)
         
+        clear()
+        print(f"Prompt text being passed:\n\n{prompt_text}")
+
         if schema == "openai":
             asyncio.run(fetch_chat_openai(prompt_text))
         elif schema == "openrouter":
@@ -129,6 +144,7 @@ def typeReceivedText(text):
 
 
 async def fetch_chat_openai(prompt):
+    response_start_time = time.time()
     url = "https://api.openai.com/v1/chat/completions"
     headers = {
         "Content-Type": "application/json",
@@ -163,10 +179,19 @@ async def fetch_chat_openai(prompt):
                             if content_chunks:
                                 typeReceivedText(content_chunks)
                     except json.JSONDecodeError:
-                        print("Received non-JSON line: ", line)
+                        print(f"\nReceived end of response: {line}\n")
+                        
     typeReceivedText(" ")
+    
+    response_end_time = time.time()
+    
+    elapsed_response_time = response_end_time - response_start_time
+    elapsed_total_time = response_end_time - total_start_time
+    print(f"Time for full response: {elapsed_response_time:.2f}s")
+    print(f"Time for total operation: {elapsed_total_time:.2f}s")
 
 async def fetch_chat_openrouter(prompt):
+    response_start_time = time.time()
     url = "https://openrouter.ai/api/v1/chat/completions"
     headers = {
         "Content-Type": "application/json",
@@ -201,10 +226,19 @@ async def fetch_chat_openrouter(prompt):
                             if content_chunks:
                                 typeReceivedText(content_chunks)
                     except json.JSONDecodeError:
-                        print("Received non-JSON line: ", line)
+                        print(f"\nReceived end of response: {line}\n")
+                        
     typeReceivedText(" ")
+    
+    response_end_time = time.time()
+    
+    elapsed_response_time = response_end_time - response_start_time
+    elapsed_total_time = response_end_time - total_start_time
+    print(f"Time for full response: {elapsed_response_time:.2f}s")
+    print(f"Time for total operation: {elapsed_total_time:.2f}s")
 
 async def fetch_chat_fireworks(prompt):
+    response_start_time = time.time()
     url = "https://api.fireworks.ai/inference/v1/chat/completions"
     headers = {
         "Content-Type": "application/json",
@@ -239,8 +273,16 @@ async def fetch_chat_fireworks(prompt):
                             if content_chunks:
                                 typeReceivedText(content_chunks)
                     except json.JSONDecodeError:
-                        print("Received non-JSON line: ", line)
+                        print(f"\nReceived end of response: {line}\n")
+                        
     typeReceivedText(" ")
+    
+    response_end_time = time.time()
+    
+    elapsed_response_time = response_end_time - response_start_time
+    elapsed_total_time = response_end_time - total_start_time
+    print(f"Time for full response: {elapsed_response_time:.2f}s")
+    print(f"Time for total operation: {elapsed_total_time:.2f}s")
 
 
 
