@@ -8,12 +8,20 @@ import sys
 import argparse
 import os
 from dotenv import load_dotenv
+import signal
 
 def clear():
     if os.name == "nt":
         _ = os.system("cls")
     else:
         _ = os.system("clear")
+
+def signal_handler(sig, frame):
+    clear()  # Your custom clear function
+    print("Safely terminated program.")
+    sys.exit(0)
+
+signal.signal(signal.SIGINT, signal_handler)
 
 load_dotenv()
 

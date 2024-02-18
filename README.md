@@ -40,8 +40,8 @@ Well, I loved how Github Copilot finished code and sentences for me, but it only
 #### To-do 🚧
 
 - [ ] Add a way to change the hotkey without editing the file
-- [ ] Handle ctrl+c or cmd+c gracefully, and exit script and environment automatically
 - [ ] Make the environment variable persist
+- [ ] Make a configuration file somewhere
  
 ##### Disclaimer ⚠️
 
