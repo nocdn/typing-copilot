@@ -31,7 +31,7 @@ schema = "openai"
 args = argParser.parse_args()
 
 if args.tokens:
-    globalMaxTokens = args.tokens
+    globalMaxTokens = int(args.tokens)
     print(f"Chosen {globalMaxTokens} tokens")
 
 if args.temp:
@@ -111,7 +111,7 @@ def press_callback():
         if prompt_text and prompt_text[-1] != ' ':
             prompt_text += ' '
 
-        # print(prompt_text)
+        print(prompt_text)
         
         if schema == "openai":
             asyncio.run(fetch_chat_openai(prompt_text))
