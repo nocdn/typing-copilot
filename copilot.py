@@ -17,11 +17,14 @@ argParser.add_argument("--tokens", help="the maximum tokens to generate", defaul
 argParser.add_argument("--model", help="choose a model schema from openAI, fireworks or openrouter, paste in a model string from the platforms", default="gpt-3.5-turbo")
 argParser.add_argument("--temp", help="the model temperature to use", default=0)
 argParser.add_argument("--context", help="max amount of words to give the model from the input field", default=128)
+argParser.add_argument("--delay", help="delay between the operations like cmd+a and cmd+c in seconds, eg: 0.15 is 150ms", default=0.2)
+
 
 
 globalMaxTokens = 32
 globalTemperature = 0
 globalContext = 128
+globalDelay = 0.2
 modelChoice = "gpt-3.5-turbo"
 schema = "openai"
 
@@ -38,6 +41,10 @@ if args.temp:
 if args.context:
     globalContext = args.context
     print(f"Chosen {globalContext} context length")
+
+if args.delay:
+    globalDelay = args.delay
+    print(f"Chosen {globalDelay} delay")
 
 if args.model:
     if args.model == "gpt-3.5-turbo":
@@ -94,16 +101,18 @@ def press_callback():
         c.press(Key.down)
         c.release(Key.down)
 
-        time.sleep(0.12)
+        time.sleep(globalDelay)
         prompt_text = pyperclip.paste()
-        time.sleep(0.12)
+        time.sleep(globalDelay)
         if prompt_text and prompt_text[-1] != ' ':
             c.press(' ')
             c.release(' ')
-        time.sleep(0.12)
+        time.sleep(globalDelay)
         if prompt_text and prompt_text[-1] != ' ':
             prompt_text += ' '
 
+        # print(prompt_text)
+        
         if schema == "openai":
             asyncio.run(fetch_chat_openai(prompt_text))
         elif schema == "openrouter":
