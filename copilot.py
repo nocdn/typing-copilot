@@ -25,6 +25,12 @@ signal.signal(signal.SIGINT, signal_handler)
 
 load_dotenv()
 
+def load_config(file_path='config.json'):
+    with open(file_path, 'r') as file:
+        return json.load(file)
+
+config = load_config()
+
 argParser = argparse.ArgumentParser()
 
 argParser.add_argument("--tokens", help="the maximum tokens to generate", default=32)
@@ -33,16 +39,21 @@ argParser.add_argument("--temp", help="the model temperature to use", default=0)
 argParser.add_argument("--context", help="max amount of words to give the model from the input field", default=128)
 argParser.add_argument("--delay", help="delay between the operations like cmd+a and cmd+c in seconds, eg: 0.15 is 150ms", default=0.2)
 
-
-
-globalMaxTokens = 32
-globalTemperature = 0
-globalContext = 128
-globalDelay = 0.2
-modelChoice = "gpt-3.5-turbo"
-schema = "openai"
-
 args = argParser.parse_args()
+
+globalMaxTokens = int(args.tokens) if args.tokens else config['defaults']['tokens']
+globalTemperature = float(args.temp) if args.temp else config['defaults']['temperature']
+globalContext = int(args.context) if args.context else config['defaults']['context']
+globalDelay = float(args.delay) if args.delay else config['defaults']['delay']
+modelChoice = args.model if args.model else config['defaults']['model']
+schema = "openai"
+keyboardShortcut = config['keyboard_shortcuts']['activate']
+
+# Network configurations
+max_retries = config['network']['max_retries']
+retry_delay = config['network']['retry_delay']
+
+
 
 clear()
 
@@ -152,145 +163,166 @@ def typeReceivedText(text):
 
 
 async def fetch_chat_openai(prompt):
-    response_start_time = time.time()
-    url = "https://api.openai.com/v1/chat/completions"
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {OPENAI_API_KEY}"
-    }
-    data = {
-        "model": modelChoice,
-        "messages": [
-        {
-        "role": "system",
-        "content": "Continue the provided text, do not output the provided text, just continue writing based on the context you have."
-        },
-        {
-        "role": "user",
-        "content":  prompt}],
-        "max_tokens": globalMaxTokens,
-        "temperature": globalTemperature,
-        "stream": True
-    }
-    async with httpx.AsyncClient() as client:
-        async with client.stream("POST", url, headers=headers, data=json.dumps(data)) as response:
-            async for line in response.aiter_lines():
-                if line.strip():  # Check if line is not empty
-                    try:
-                        # Process each line received from the stream
-                        json_data = line.strip().replace('data: ', '')
-                        completion_data = json.loads(json_data)
-                        # Check if the data contains 'choices' and process accordingly
-                        if 'choices' in completion_data and len(completion_data['choices']) > 0:
-                            # Extract the 'content' from the delta object
-                            content_chunks = completion_data['choices'][0]['delta'].get('content', '')
-                            if content_chunks:
-                                typeReceivedText(content_chunks)
-                    except json.JSONDecodeError:
-                        print(f"\nReceived end of response: {line}\n")
-                        
-    typeReceivedText(" ")
-    
-    response_end_time = time.time()
-    
-    elapsed_response_time = response_end_time - response_start_time
-    elapsed_total_time = response_end_time - total_start_time
-    print(f"Time for full response: {elapsed_response_time:.2f}s")
-    print(f"Time for total operation: {elapsed_total_time:.2f}s")
+    try:
+        response_start_time = time.time()
+        url = "https://api.openai.com/v1/chat/completions"
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {OPENAI_API_KEY}"
+        }
+        data = {
+            "model": modelChoice,
+            "messages": [
+            {
+            "role": "system",
+            "content": "Continue the provided text, do not output the provided text, just continue writing based on the context you have."
+            },
+            {
+            "role": "user",
+            "content":  prompt}],
+            "max_tokens": globalMaxTokens,
+            "temperature": globalTemperature,
+            "stream": True
+        }
+        async with httpx.AsyncClient() as client:
+            async with client.stream("POST", url, headers=headers, data=json.dumps(data)) as response:
+                async for line in response.aiter_lines():
+                    if line.strip():  # Check if line is not empty
+                        try:
+                            # Process each line received from the stream
+                            json_data = line.strip().replace('data: ', '')
+                            completion_data = json.loads(json_data)
+                            # Check if the data contains 'choices' and process accordingly
+                            if 'choices' in completion_data and len(completion_data['choices']) > 0:
+                                # Extract the 'content' from the delta object
+                                content_chunks = completion_data['choices'][0]['delta'].get('content', '')
+                                if content_chunks:
+                                    typeReceivedText(content_chunks)
+                        except json.JSONDecodeError:
+                            print(f"\nReceived end of response: {line}\n")
+                            
+        typeReceivedText(" ")
+        
+        response_end_time = time.time()
+        
+        elapsed_response_time = response_end_time - response_start_time
+        elapsed_total_time = response_end_time - total_start_time
+        print(f"Time for full response: {elapsed_response_time:.2f}s")
+        print(f"Time for total operation: {elapsed_total_time:.2f}s")
+
+    except httpx.ConnectError as e:
+        print(f"\nFailed to connect: {e}")
+        print("Exiting.")
+        time.sleep(0.5)
+        sys.exit(1)
 
 async def fetch_chat_openrouter(prompt):
-    response_start_time = time.time()
-    url = "https://openrouter.ai/api/v1/chat/completions"
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {OPENROUTER_API_KEY}"
-    }
-    data = {
-        "model": modelChoice,
-        "messages": [
-        {
-        "role": "system",
-        "content": "Continue the provided text, do not output the provided text, just continue writing based on the context you have."
-        },
-        {
-        "role": "user",
-        "content":  prompt}],
-        "max_tokens": globalMaxTokens,
-        "temperature": globalTemperature,
-        "stream": True
-    }
-    async with httpx.AsyncClient() as client:
-        async with client.stream("POST", url, headers=headers, data=json.dumps(data)) as response:
-            async for line in response.aiter_lines():
-                if line.strip():  # Check if line is not empty
-                    try:
-                        # Process each line received from the stream
-                        json_data = line.strip().replace('data: ', '')
-                        completion_data = json.loads(json_data)
-                        # Check if the data contains 'choices' and process accordingly
-                        if 'choices' in completion_data and len(completion_data['choices']) > 0:
-                            # Extract the 'content' from the delta object
-                            content_chunks = completion_data['choices'][0]['delta'].get('content', '')
-                            if content_chunks:
-                                typeReceivedText(content_chunks)
-                    except json.JSONDecodeError:
-                        print(f"\nReceived end of response: {line}\n")
-                        
-    typeReceivedText(" ")
-    
-    response_end_time = time.time()
-    
-    elapsed_response_time = response_end_time - response_start_time
-    elapsed_total_time = response_end_time - total_start_time
-    print(f"Time for full response: {elapsed_response_time:.2f}s")
-    print(f"Time for total operation: {elapsed_total_time:.2f}s")
+    try:
+        response_start_time = time.time()
+        url = "https://openrouter.ai/api/v1/chat/completions"
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {OPENROUTER_API_KEY}"
+        }
+        data = {
+            "model": modelChoice,
+            "messages": [
+            {
+            "role": "system",
+            "content": "Continue the provided text, do not output the provided text, just continue writing based on the context you have."
+            },
+            {
+            "role": "user",
+            "content":  prompt}],
+            "max_tokens": globalMaxTokens,
+            "temperature": globalTemperature,
+            "stream": True
+        }
+        async with httpx.AsyncClient() as client:
+            async with client.stream("POST", url, headers=headers, data=json.dumps(data)) as response:
+                async for line in response.aiter_lines():
+                    if line.strip():  # Check if line is not empty
+                        try:
+                            # Process each line received from the stream
+                            json_data = line.strip().replace('data: ', '')
+                            completion_data = json.loads(json_data)
+                            # Check if the data contains 'choices' and process accordingly
+                            if 'choices' in completion_data and len(completion_data['choices']) > 0:
+                                # Extract the 'content' from the delta object
+                                content_chunks = completion_data['choices'][0]['delta'].get('content', '')
+                                if content_chunks:
+                                    typeReceivedText(content_chunks)
+                        except json.JSONDecodeError:
+                            print(f"\nReceived end of response: {line}\n")
+                            
+        typeReceivedText(" ")
+        
+        response_end_time = time.time()
+        
+        elapsed_response_time = response_end_time - response_start_time
+        elapsed_total_time = response_end_time - total_start_time
+        print(f"Time for full response: {elapsed_response_time:.2f}s")
+        print(f"Time for total operation: {elapsed_total_time:.2f}s")
+
+    except httpx.ConnectError as e:
+        print(f"\nFailed to connect: {e}")
+        print("Exiting.")
+        time.sleep(0.5)
+        sys.exit(1)
 
 async def fetch_chat_fireworks(prompt):
-    response_start_time = time.time()
-    url = "https://api.fireworks.ai/inference/v1/chat/completions"
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {FIREWORKS_API_KEY}"
-    }
-    data = {
-        "model": modelChoice,
-        "messages": [
-        {
-        "role": "system",
-        "content": "Continue the provided text, do not output the provided text, just continue writing based on the context you have."
-        },
-        {
-        "role": "user",
-        "content":  prompt}],
-        "max_tokens": globalMaxTokens,
-        "temperature": globalTemperature,
-        "stream": True
-    }
-    async with httpx.AsyncClient() as client:
-        async with client.stream("POST", url, headers=headers, data=json.dumps(data)) as response:
-            async for line in response.aiter_lines():
-                if line.strip():  # Check if line is not empty
-                    try:
-                        # Process each line received from the stream
-                        json_data = line.strip().replace('data: ', '')
-                        completion_data = json.loads(json_data)
-                        # Check if the data contains 'choices' and process accordingly
-                        if 'choices' in completion_data and len(completion_data['choices']) > 0:
-                            # Extract the 'content' from the delta object
-                            content_chunks = completion_data['choices'][0]['delta'].get('content', '')
-                            if content_chunks:
-                                typeReceivedText(content_chunks)
-                    except json.JSONDecodeError:
-                        print(f"\nReceived end of response: {line}\n")
-                        
-    typeReceivedText(" ")
+    try:
+        response_start_time = time.time()
+        url = "https://api.fireworks.ai/inference/v1/chat/completions"
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {FIREWORKS_API_KEY}"
+        }
+        data = {
+            "model": modelChoice,
+            "messages": [
+            {
+            "role": "system",
+            "content": "Continue the provided text, do not output the provided text, just continue writing based on the context you have."
+            },
+            {
+            "role": "user",
+            "content":  prompt}],
+            "max_tokens": globalMaxTokens,
+            "temperature": globalTemperature,
+            "stream": True
+        }
+        async with httpx.AsyncClient() as client:
+            async with client.stream("POST", url, headers=headers, data=json.dumps(data)) as response:
+                async for line in response.aiter_lines():
+                    if line.strip():  # Check if line is not empty
+                        try:
+                            # Process each line received from the stream
+                            json_data = line.strip().replace('data: ', '')
+                            completion_data = json.loads(json_data)
+                            # Check if the data contains 'choices' and process accordingly
+                            if 'choices' in completion_data and len(completion_data['choices']) > 0:
+                                # Extract the 'content' from the delta object
+                                content_chunks = completion_data['choices'][0]['delta'].get('content', '')
+                                if content_chunks:
+                                    typeReceivedText(content_chunks)
+                        except json.JSONDecodeError:
+                            print(f"\nReceived end of response: {line}\n")
+                            
+        typeReceivedText(" ")
+        
+        response_end_time = time.time()
+        
+        elapsed_response_time = response_end_time - response_start_time
+        elapsed_total_time = response_end_time - total_start_time
+        print(f"Time for full response: {elapsed_response_time:.2f}s")
+        print(f"Time for total operation: {elapsed_total_time:.2f}s")
     
-    response_end_time = time.time()
-    
-    elapsed_response_time = response_end_time - response_start_time
-    elapsed_total_time = response_end_time - total_start_time
-    print(f"Time for full response: {elapsed_response_time:.2f}s")
-    print(f"Time for total operation: {elapsed_total_time:.2f}s")
+    except httpx.ConnectError as e:
+        print(f"\nFailed to connect: {e}")
+        print("Exiting.")
+        time.sleep(0.5)
+        sys.exit(1)
 
 
 
@@ -298,7 +330,7 @@ def for_canonical(f):
     return lambda k: f(l.canonical(k))
 
 
-hk = HotKey(HotKey.parse('<ctrl>+<alt>+f'), on_activate=press_callback)
+hk = HotKey(HotKey.parse(keyboardShortcut), on_activate=press_callback)
 
 with Listener(on_press=for_canonical(hk.press), on_release=for_canonical(hk.release)) as l:
     l.join()
