@@ -221,9 +221,6 @@ async def fetch_chat_openai(prompt):
                 sys.exit(1)  # Exit the program after the final attempt
             else:
                 await asyncio.sleep(retry_delay)
-    print("Max retries reached, exiting.")
-    time.sleep(0.25)
-    sys.exit(1)
 
 async def fetch_chat_openrouter(prompt):
     attempt = 0
@@ -284,9 +281,6 @@ async def fetch_chat_openrouter(prompt):
                 sys.exit(1)  # Exit the program after the final attempt
             else:
                 await asyncio.sleep(retry_delay)
-    print("Max retries reached, exiting.")
-    time.sleep(0.25)
-    sys.exit(1)
 
 async def fetch_chat_fireworks(prompt):
     attempt = 0
@@ -347,10 +341,6 @@ async def fetch_chat_fireworks(prompt):
                     sys.exit(1)  # Exit the program after the final attempt
                 else:
                     await asyncio.sleep(retry_delay)
-        print("Max retries reached, exiting.")
-        time.sleep(0.25)
-        sys.exit(1)
-
 
 
 def for_canonical(f):
