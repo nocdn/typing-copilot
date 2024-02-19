@@ -12,6 +12,6 @@
   },
   "network": {
     "max_retries": 4,
-    "retry_delay": 2
+    "retry_delay": 3
   }
 }
