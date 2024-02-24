@@ -7,7 +7,7 @@
     "model": "gpt-3.5-turbo",
     "schema": "openai",
     "temperature": 0,
-    "context": 128,
+    "context": 76,
     "delay": 0.2
   },
   "network": {
