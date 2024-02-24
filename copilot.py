@@ -34,7 +34,7 @@ config = load_config()
 argParser = argparse.ArgumentParser()
 
 argParser.add_argument("--tokens", help="the maximum tokens to generate", default=32)
-argParser.add_argument("--model", help="choose a model schema from openAI, fireworks or openrouter, paste in a model string from the platforms", default="gpt-3.5-turbo")
+argParser.add_argument("--schema", help="choose a model schema from openAI, fireworks or openrouter, paste in a model string from the platforms", default="gpt-3.5-turbo")
 argParser.add_argument("--temp", help="the model temperature to use", default=0)
 argParser.add_argument("--context", help="max amount of words to give the model from the input field", default=128)
 argParser.add_argument("--delay", help="delay between the operations like cmd+a and cmd+c in seconds, eg: 0.15 is 150ms", default=0.2)
@@ -45,8 +45,9 @@ globalMaxTokens = int(args.tokens) if args.tokens else config['defaults']['token
 globalTemperature = float(args.temp) if args.temp else config['defaults']['temperature']
 globalContext = int(args.context) if args.context else config['defaults']['context']
 globalDelay = float(args.delay) if args.delay else config['defaults']['delay']
-modelChoice = args.model if args.model else config['defaults']['model']
+modelChoice = args.schema if args.schema else config['defaults']['model']
 schema = "openai"
+modelChoice = "gpt-3.5-turbo"
 keyboardShortcut = config['keyboard_shortcuts']['activate']
 
 # Network configurations
@@ -73,8 +74,8 @@ if args.delay:
     globalDelay = args.delay
     print(f"Chosen {globalDelay} delay")
 
-if args.model:
-    if args.model == "gpt-3.5-turbo":
+if args.schema:
+    if args.schema == "gpt-3.5-turbo":
         modelChoice = "gpt-3.5-turbo"
         try:
             OPENAI_API_KEY = os.environ['OPENAI_API_KEY']
@@ -85,7 +86,7 @@ if args.model:
                 sys.exit()
             os.environ['OPENAI_API_KEY'] = OPENAI_API_KEY
 
-    elif args.model == "openrouter":
+    elif args.schema == "openrouter":
         modelChoice = input("Please paste in the model string from openrouter.ai: ")
         schema = "openrouter"
         try:
@@ -96,7 +97,8 @@ if args.model:
                 print("Please set the OPENROUTER_API_KEY environment variable manually")
                 sys.exit()
             os.environ['OPENROUTER_API_KEY'] = OPENROUTER_API_KEY
-    elif args.model == "fireworks":
+
+    elif args.schema == "fireworks":
         modelChoice = input("Please paste in the model string from fireworks.ai: ")
         schema = "fireworks"
         try:
@@ -107,6 +109,18 @@ if args.model:
                 print("Please set the FIREWORKS_API_KEY environment variable manually")
                 sys.exit()
             os.environ['FIREWORKS_API_KEY'] = FIREWORKS_API_KEY
+    elif args.schema == "pplx":
+        modelChoice = input("Please paste in the model string from perplexity.ai: ")
+        schema = "pplx"
+        try:
+            PPLX_API_KEY = os.environ['PPLX_API_KEY']
+        except KeyError:
+            PPLX_API_KEY = input("Please enter your Perplexity API key, will be saved as env variable: ")
+            if not PPLX_API_KEY:
+                print("Please set the PPLX_API_KEY environment variable manually")
+                sys.exit()
+            os.environ['PPLX_API_KEY'] = PPLX_API_KEY
+
     else:
         print("Please choose a valid model schema from openAI, fireworks or openrouter")
         sys.exit()
@@ -147,20 +161,89 @@ def press_callback():
         clear()
         print(f"Prompt text being passed:\n\n{prompt_text}")
 
-        if schema == "openai":
-            asyncio.run(fetch_chat_openai(prompt_text))
-        elif schema == "openrouter":
-            asyncio.run(fetch_chat_openrouter(prompt_text))
-        elif schema == "fireworks":
-            asyncio.run(fetch_chat_fireworks(prompt_text))
-        else:
-            asyncio.run(fetch_chat_openai(prompt_text))
+        asyncio.run(fetch_chat_generic(prompt_text))
     except AttributeError:
         pass
 
 def typeReceivedText(text):
     c.type(text)
 
+
+fetchURLs = {
+    "openai": "https://api.openai.com/v1/chat/completions",
+    "openrouter": "https://openrouter.ai/api/v1/chat/completions",
+    "fireworks": "https://api.fireworks.ai/inference/v1/chat/completions",
+    "pplx": "https://api.perplexity.ai/chat/completions"
+}
+
+fetchAPIKeys = {
+    "openai": os.environ['OPENAI_API_KEY'],
+    "openrouter": os.environ.get('OPENROUTER_API_KEY'),
+    "fireworks": os.environ.get('FIREWORKS_API_KEY'),
+    "pplx": os.environ.get('PPLX_API_KEY')
+}
+
+
+async def fetch_chat_generic(prompt):
+    attempt = 0
+    while attempt < max_retries:
+        try:
+            response_start_time = time.time()
+            url = fetchURLs[schema]
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {fetchAPIKeys[schema]}"
+            }
+            data = {
+                "model": modelChoice,
+                "messages": [
+                {
+                    "role": "system",
+                    "content": "Continue the provided text, do not output the provided text, just continue writing based on the context you have."
+                },
+                {
+                    "role": "user",
+                    "content":  prompt
+                }],
+                "max_tokens": globalMaxTokens,
+                "temperature": globalTemperature,
+                "stream": True
+            }
+            async with httpx.AsyncClient() as client:
+                async with client.stream("POST", url, headers=headers, data=json.dumps(data)) as response:
+                    async for line in response.aiter_lines():
+                        if line.strip():  # Check if line is not empty
+                            try:
+                                # Process each line received from the stream
+                                json_data = line.strip().replace('data: ', '')
+                                completion_data = json.loads(json_data)
+                                # Check if the data contains 'choices' and process accordingly
+                                if 'choices' in completion_data and len(completion_data['choices']) > 0:
+                                    # Extract the 'content' from the delta object
+                                    content_chunks = completion_data['choices'][0]['delta'].get('content', '')
+                                    if content_chunks:
+                                        typeReceivedText(content_chunks)
+                            except json.JSONDecodeError:
+                                print(f"\nReceived end of response: {line}\n")
+                                
+            typeReceivedText(" ")
+            
+            response_end_time = time.time()
+            
+            elapsed_response_time = response_end_time - response_start_time
+            elapsed_total_time = response_end_time - total_start_time
+            print(f"\nTime for full response: {elapsed_response_time:.2f}s")
+            print(f"Time for total operation: {elapsed_total_time:.2f}s")
+            break
+
+        except httpx.ConnectError as e:
+            attempt += 1
+            print(f"Failed to connect (attempt {attempt}/{max_retries}): {e}")
+            if attempt > max_retries:
+                print("Maximum retry attempts reached. Exiting.")
+                sys.exit(1)  # Exit the program after the final attempt
+            else:
+                await asyncio.sleep(retry_delay)
 
 async def fetch_chat_openai(prompt):
     attempt = 0
@@ -221,6 +304,7 @@ async def fetch_chat_openai(prompt):
                 sys.exit(1)  # Exit the program after the final attempt
             else:
                 await asyncio.sleep(retry_delay)
+
 
 async def fetch_chat_openrouter(prompt):
     attempt = 0
@@ -342,6 +426,68 @@ async def fetch_chat_fireworks(prompt):
                 else:
                     await asyncio.sleep(retry_delay)
 
+
+async def fetch_chat_pplx(prompt):
+    attempt = 0
+    while attempt < max_retries:
+        try:
+            response_start_time = time.time()
+            url = "https://api.perplexity.ai/chat/completions"
+            headers = {
+                "accept": "application/json",
+                "content-type": "application/json",
+                "authorization": "Bearer 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"
+            }
+            data = {
+                "model": "mistral-7b-instruct",
+                "messages": [
+                {
+                "role": "system",
+                "content": "Continue the provided text, do not output the provided text, just continue writing based on the context you have."
+                },
+                {
+                "role": "user",
+                "content":  prompt}],
+                "max_tokens": 16,
+                "temperature": globalTemperature,
+                "stream": True
+            }
+            async with httpx.AsyncClient() as client:
+                async with client.stream("POST", url, headers=headers, data=json.dumps(data)) as response:
+                    async for line in response.aiter_lines():
+                        if line.strip():  # Check if line is not empty
+                            try:
+                                # Process each line received from the stream
+                                json_data = line.strip().replace('data: ', '')
+                                completion_data = json.loads(json_data)
+                                # Check if the data contains 'choices' and process accordingly
+                                if 'choices' in completion_data and len(completion_data['choices']) > 0:
+                                    # Directly extract the 'content' from the message object
+                                    content_chunks = [choice.get('message', {}).get('content', '') for choice in completion_data['choices']]
+                                    for content_chunk in content_chunks:
+                                        if content_chunk:
+                                            typeReceivedText(content_chunk)
+                            except json.JSONDecodeError:
+                                print(f"\nReceived end of response: {line}\n")
+                                
+            typeReceivedText(" ")
+            
+            response_end_time = time.time()
+            
+            elapsed_response_time = response_end_time - response_start_time
+            elapsed_total_time = response_end_time - total_start_time
+            print(f"Time for full response: {elapsed_response_time:.2f}s")
+            print(f"Time for total operation: {elapsed_total_time:.2f}s")
+            break
+
+        except httpx.ConnectError as e:
+            attempt += 1
+            print(f"Failed to connect (attempt {attempt}/{max_retries}): {e}")
+            if attempt > max_retries:
+                print("Maximum retry attempts reached. Exiting.")
+                sys.exit(1)  # Exit the program after the final attempt
+            else:
+                await asyncio.sleep(retry_delay)
 
 def for_canonical(f):
     return lambda k: f(l.canonical(k))
