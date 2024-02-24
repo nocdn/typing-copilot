@@ -39,9 +39,6 @@ Well, I loved how Github Copilot finished code and sentences for me, but it only
 
 #### To-do 🚧
 
-- [ ] Add a way to change the hotkey without editing the file
-- [ ] Make the environment variable persist
-- [ ] Make a configuration file somewhere
  
 ##### Disclaimer ⚠️
 

@@ -84,7 +84,14 @@ if args.schema:
             if not OPENAI_API_KEY:
                 print("Please set the OPENAI_API_KEY environment variable manually")
                 sys.exit()
-            os.environ['OPENAI_API_KEY'] = OPENAI_API_KEY
+
+            # Add the API key to the .zshrc file
+            line_to_add = f'export OPENAI_API_KEY={OPENAI_API_KEY}\n'
+            zshrc_path = os.path.expanduser('~/.zshrc')
+            with open(zshrc_path, 'a') as file:
+                file.write(line_to_add)
+
+            print(f"Added line to {zshrc_path}: {line_to_add}")
 
     elif args.schema == "openrouter":
         modelChoice = input("Please paste in the model string from openrouter.ai: ")
@@ -96,7 +103,14 @@ if args.schema:
             if not OPENROUTER_API_KEY:
                 print("Please set the OPENROUTER_API_KEY environment variable manually")
                 sys.exit()
-            os.environ['OPENROUTER_API_KEY'] = OPENROUTER_API_KEY
+
+            # Add the API key to the .zshrc file
+            line_to_add = f'export OPENROUTER_API_KEY={OPENROUTER_API_KEY}\n'
+            zshrc_path = os.path.expanduser('~/.zshrc')
+            with open(zshrc_path, 'a') as file:
+                file.write(line_to_add)
+
+            print(f"Added line to {zshrc_path}: {line_to_add}")
 
     elif args.schema == "fireworks":
         modelChoice = input("Please paste in the model string from fireworks.ai: ")
@@ -108,7 +122,15 @@ if args.schema:
             if not FIREWORKS_API_KEY:
                 print("Please set the FIREWORKS_API_KEY environment variable manually")
                 sys.exit()
-            os.environ['FIREWORKS_API_KEY'] = FIREWORKS_API_KEY
+
+            # Add the API key to the .zshrc file
+            line_to_add = f'export FIREWORKS_API_KEY={FIREWORKS_API_KEY}\n'
+            zshrc_path = os.path.expanduser('~/.zshrc')
+            with open(zshrc_path, 'a') as file:
+                file.write(line_to_add)
+
+            print(f"Added line to {zshrc_path}: {line_to_add}")
+
     elif args.schema == "pplx":
         modelChoice = input("Please paste in the model string from perplexity.ai: ")
         schema = "pplx"
@@ -119,7 +141,14 @@ if args.schema:
             if not PPLX_API_KEY:
                 print("Please set the PPLX_API_KEY environment variable manually")
                 sys.exit()
-            os.environ['PPLX_API_KEY'] = PPLX_API_KEY
+
+            # Add the API key to the .zshrc file
+            line_to_add = f'export PPLX_API_KEY={PPLX_API_KEY}\n'
+            zshrc_path = os.path.expanduser('~/.zshrc')
+            with open(zshrc_path, 'a') as file:
+                file.write(line_to_add)
+
+            print(f"Added line to {zshrc_path}: {line_to_add}")
 
     else:
         print("Please choose a valid model schema from openAI, fireworks or openrouter")
@@ -150,13 +179,13 @@ def press_callback():
 
         time.sleep(globalDelay)
         prompt_text = pyperclip.paste()
-        time.sleep(globalDelay)
+        # time.sleep(globalDelay)
         prompt_text = prompt_text.split(" ")[-globalContext:]
         prompt_text = " ".join(prompt_text)
         if prompt_text and prompt_text[-1] != ' ':
             c.press(' ')
             c.release(' ')
-        time.sleep(globalDelay)
+        # time.sleep(globalDelay)
         if prompt_text and prompt_text[-1] != ' ':
             prompt_text += ' '
         
