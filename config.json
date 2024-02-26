@@ -4,14 +4,14 @@
   },
   "defaults": {
     "tokens": 32,
-    "model": "gpt-3.5-turbo",
-    "schema": "openai",
+    "model": "mixtral-8x7b-32768",
+    "schema": "groq",
     "temperature": 0,
     "context": 76,
-    "delay": 0.2
+    "delay": 0.1
   },
   "network": {
-    "max_retries": 4,
-    "retry_delay": 3
+    "max_retries": 3,
+    "retry_delay": 4
   }
 }
