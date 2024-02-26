@@ -46,8 +46,8 @@ globalTemperature = float(args.temp) if args.temp else config['defaults']['tempe
 globalContext = int(args.context) if args.context else config['defaults']['context']
 globalDelay = float(args.delay) if args.delay else config['defaults']['delay']
 modelChoice = args.schema if args.schema else config['defaults']['model']
-schema = "openai"
-modelChoice = "gpt-3.5-turbo"
+schema = "groq"
+modelChoice = "mixtral-8x7b-32768"
 keyboardShortcut = config['keyboard_shortcuts']['activate']
 
 # Network configurations
