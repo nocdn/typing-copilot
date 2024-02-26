@@ -150,6 +150,25 @@ if args.schema:
 
             print(f"Added line to {zshrc_path}: {line_to_add}")
 
+    elif args.schema == "groq":
+        modelChoice = "mixtral-8x7b-32768"
+        schema = "groq"
+        try:
+            GROQ_API_KEY = os.environ['GROQ_API_KEY']
+        except KeyError:
+            GROQ_API_KEY = input("Please enter your Groq API key, will be saved as env variable: ")
+            if not GROQ_API_KEY:
+                print("Please set the GROQ_API_KEY environment variable manually")
+                sys.exit()
+
+            # Add the API key to the .zshrc file
+            line_to_add = f'export GROQ_API_KEY={GROQ_API_KEY}\n'
+            zshrc_path = os.path.expanduser('~/.zshrc')
+            with open(zshrc_path, 'a') as file:
+                file.write(line_to_add)
+
+            print(f"Added line to {zshrc_path}: {line_to_add}")
+
     else:
         print("Please choose a valid model schema from openAI, fireworks or openrouter")
         sys.exit()
@@ -204,14 +223,16 @@ fetchURLs = {
     "openai": "https://api.openai.com/v1/chat/completions",
     "openrouter": "https://openrouter.ai/api/v1/chat/completions",
     "fireworks": "https://api.fireworks.ai/inference/v1/chat/completions",
-    "pplx": "https://api.perplexity.ai/chat/completions"
+    "pplx": "https://api.perplexity.ai/chat/completions",
+    "groq": "https://api.groq.com/openai/v1/chat/completions"
 }
 
 fetchAPIKeys = {
     "openai": os.environ['OPENAI_API_KEY'],
     "openrouter": os.environ.get('OPENROUTER_API_KEY'),
     "fireworks": os.environ.get('FIREWORKS_API_KEY'),
-    "pplx": os.environ.get('PPLX_API_KEY')
+    "pplx": os.environ.get('PPLX_API_KEY'),
+    "groq": os.environ.get('GROQ_API_KEY')
 }
 
 
@@ -230,7 +251,7 @@ async def fetch_chat_generic(prompt):
                 "messages": [
                 {
                     "role": "system",
-                    "content": "Continue the provided text, do not output the provided text, just continue writing based on the context you have."
+                    "content": "Continue the provided text, DO NOT output or repeat the provided text, just continue writing based on the context you have."
                 },
                 {
                     "role": "user",
