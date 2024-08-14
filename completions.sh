@@ -33,7 +33,7 @@ response=$(curl -s -X POST "https://api.groq.com/openai/v1/chat/completions" \
      -H "Content-Type: application/json" \
      -d '{
            "messages": [
-               {"role": "system", "content": "continue the user'\''s text, without breaks"},
+               {"role": "system", "content": "continue the user'\''s text, without breaks. make your continuations short."},
                {"role": "user", "content": "'"${selected_text//\"/\\\"}"'"}
            ],
            "model": "llama-3.1-8b-instant"
