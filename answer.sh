@@ -34,8 +34,8 @@ response=$(curl -s -X POST "https://api.groq.com/openai/v1/chat/completions" \
          }'
 )
 
-# Extract the assistant's response from the JSON response
-response_text=$(echo "$response" | /usr/bin/python3 -c "import sys, json; print(json.load(sys.stdin)['choices'][0]['message']['content'])")
+# Extract the assistant's response from the JSON response using jq
+response_text=$(echo "$response" | jq -r '.choices[0].message.content')
 
 # Type the response
 osascript -e "tell application \"System Events\" to keystroke \"${response_text//\"/\\\"}\""
